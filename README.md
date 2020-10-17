@@ -23,3 +23,4 @@ specified bug.
 1. For analyzing used custom field 'Test type'. Need to specify the field name in the settings.py file.
 2. Only issues with a component will be analyzed. If no components specified for the issue, this issue will be ignored.
 3. Only issues with an assignee will be analyzed. If no assignee specified for the issue, this issue will be ignored.
+4. For analyzing retrieved only the first specified component for the issue. All other components will be ignored.

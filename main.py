@@ -4,7 +4,7 @@ import sys
 
 from settings import CONFIG_FILE, LOG_FILE_NAME, KEY_ISSUE_REGEX
 from utils import configure_logging, configuring_parameters, get_train_data, get_test_data, preparing_data, predict, \
-    print_result, validate, ValidateException
+    print_result, validate, data_sufficiency_check, check_filtered_data, ValidateException
 
 
 logger = logging.getLogger()
@@ -38,7 +38,7 @@ def parse_options():
     )
 
     options = parser.parse_args()
-    bug_ids = [x.strip() for x in options.bug_ids.split(',')]
+    bug_ids = list(set([x.strip() for x in options.bug_ids.split(',')]))
     validate(
         bug_ids, KEY_ISSUE_REGEX, 'The following bug IDs are not valid: {}. Please, check its and re-run the tool.'
     )
@@ -50,6 +50,8 @@ def run(bug_ids, config):
     jira = configuring_parameters(config)
     x_train_raw, y_train = get_train_data(jira)
     key_test, x_test_raw, = get_test_data(jira, bug_ids)
+    check_filtered_data(bug_ids, key_test)
+    data_sufficiency_check(x_train_raw, x_test_raw, key_test)
     x_train, x_test = preparing_data(x_train_raw, x_test_raw)
     y_test = predict(x_train, y_train, x_test)
     print_result(key_test, y_test)

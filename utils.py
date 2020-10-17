@@ -195,3 +195,36 @@ def validate(items, regex, error_message):
 
     if len(errors) > 0:
         raise ValidateException(error_message.format(', '.join(['\'{}\''.format(error) for error in errors])))
+
+
+def data_sufficiency_check(x_train, x_test, key_test):
+    missed_data = {}
+    for column_name in x_test.columns:
+        for i in range(len(x_test)):
+            value = getattr(x_test.iloc[i], column_name)
+            if value not in x_train[column_name].tolist():
+                key = key_test[i]['key']
+                if key not in missed_data:
+                    missed_data[key] = []
+
+                missed_data[key_test[i]['key']].append((column_name, value))
+
+    if len(missed_data) > 0:
+        missed_data_str = '; '.join(['{} ({})'.format(
+            issue,
+            ', '.join(['{} = {}'.format(name, value) for name, value in missed_data[issue]])) for issue in missed_data]
+        )
+        raise ValidateException(
+            'For the following bugs some information is absent in the historical data: {}. Please, exclude these bugs '
+            'from the bug list or expand historical data.'.format(missed_data_str)
+        )
+
+
+def check_filtered_data(bug_ids, key_test):
+    found_ids = set([x['key'] for x in key_test])
+    missed_data = set(bug_ids) - found_ids
+    if len(missed_data) > 0:
+        raise ValidateException(
+            'The following bugs were filtered: {}. Please, exclude these bugs from the bug list or expand filters in '
+            'the config file.'.format(','.join(missed_data))
+        )
